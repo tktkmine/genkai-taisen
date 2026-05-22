@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
+
 <meta charset="UTF-8">
 
 <meta name="viewport"
@@ -8,281 +10,10 @@ content="width=device-width,
 initial-scale=1.0,
 user-scalable=no">
 
-<title>30階層の魔王 Ver1.2</title>
+<title>30階層の魔王 Ver2.0</title>
 
-<style>
+<link rel="stylesheet" href="style.css">
 
-*{
-box-sizing:border-box;
--webkit-tap-highlight-color:transparent;
-}
-
-html,body{
-
-margin:0;
-padding:0;
-
-width:100%;
-height:100%;
-
-overflow:hidden;
-
-background:#111;
-
-color:white;
-
-font-family:sans-serif;
-}
-
-button{
-
-width:100%;
-
-border:none;
-
-border-radius:10px;
-
-padding:10px;
-
-margin-top:6px;
-
-font-size:16px;
-
-color:white;
-
-background:#444;
-}
-
-button:active{
-transform:scale(0.98);
-}
-
-.panel{
-
-background:#222;
-
-border-radius:10px;
-
-padding:8px;
-}
-
-.scene{
-
-width:100%;
-height:100%;
-
-display:none;
-
-overflow:hidden;
-}
-
-/* MENU */
-
-#menuScene{
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-padding:20px;
-}
-
-.menu-box{
-
-width:100%;
-
-max-width:380px;
-
-background:#222;
-
-border-radius:12px;
-
-padding:24px;
-
-text-align:center;
-
-position:relative;
-}
-
-.menu-title{
-
-font-size:34px;
-
-margin-bottom:20px;
-}
-
-.version{
-
-position:absolute;
-
-bottom:10px;
-right:14px;
-
-font-size:12px;
-
-opacity:0.6;
-}
-
-.menu-btn{
-background:#6a1b9a;
-}
-
-/* GAME */
-
-#gameScene{
-
-flex-direction:column;
-
-max-width:480px;
-
-margin:auto;
-
-padding:8px;
-
-gap:8px;
-}
-
-/* TOP */
-
-.topbar{
-
-text-align:center;
-
-font-size:22px;
-
-font-weight:bold;
-}
-
-/* BATTLE */
-
-.battle-area{
-
-display:flex;
-
-justify-content:space-between;
-
-gap:8px;
-}
-
-.character-box{
-
-width:48%;
-
-text-align:center;
-}
-
-.sprite svg{
-
-width:110px;
-height:110px;
-
-image-rendering:pixelated;
-}
-
-.status-mini{
-
-background:#1a1a1a;
-
-border-radius:8px;
-
-padding:6px;
-
-margin-top:6px;
-
-line-height:1.4;
-
-font-size:13px;
-}
-
-.enemy-name{
-
-font-size:18px;
-
-margin-bottom:4px;
-}
-
-/* INFO */
-
-.info-area{
-
-display:flex;
-
-gap:8px;
-}
-
-.info-box{
-
-flex:1;
-
-background:#1a1a1a;
-
-border-radius:8px;
-
-padding:8px;
-
-font-size:14px;
-}
-
-/* INVENTORY */
-
-.inventory-list{
-
-margin-top:6px;
-
-max-height:90px;
-
-overflow-y:auto;
-
-text-align:left;
-
-line-height:1.5;
-}
-
-/* LOG */
-
-.log{
-
-height:72px;
-
-overflow-y:auto;
-
-line-height:1.4;
-
-font-size:13px;
-}
-
-/* BUTTON */
-
-.bottom-area{
-
-margin-top:auto;
-}
-
-.item-btn{
-background:#1565c0;
-}
-
-.choice button{
-background:#2e7d32;
-}
-
-#choiceArea{
-
-max-height:180px;
-
-overflow-y:auto;
-}
-
-#itemArea{
-
-max-height:180px;
-
-overflow-y:auto;
-}
-
-</style>
 </head>
 
 <body>
@@ -310,7 +41,7 @@ onclick="startGame()">
 </button>
 
 <div class="version">
-Ver1.2
+Ver2.0
 </div>
 
 </div>
@@ -333,8 +64,6 @@ Ver1.2
 
 <div class="panel battle-area">
 
-<!-- PLAYER -->
-
 <div class="character-box">
 
 <div id="playerSprite"></div>
@@ -344,8 +73,6 @@ id="playerStats">
 </div>
 
 </div>
-
-<!-- ENEMY -->
 
 <div class="character-box">
 
@@ -461,172 +188,7 @@ onclick="returnToMenu()">
 
 </div>
 
-<script>
-
-const menuScene =
-document.getElementById("menuScene");
-
-const gameScene =
-document.getElementById("gameScene");
-
-let floor;
-let player;
-let inventory;
-let enemy;
-
-let currentChoices = [];
-
-const enemyNames = [
-"スライム",
-"ゴブリン",
-"オーク",
-"骸骨兵",
-"ドラゴン"
-];
-
-const weapons = [
-{name:"木の剣", power:1, rate:18},
-{name:"鉄の剣", power:2, rate:12},
-{name:"鋼の剣", power:3, rate:7},
-{name:"伝説の剣", power:4, rate:3}
-];
-
-const armors = [
-{name:"木の鎧", power:1, rate:18},
-{name:"鉄の鎧", power:2, rate:12},
-{name:"鋼の鎧", power:3, rate:7},
-{name:"伝説の鎧", power:4, rate:3}
-];
-
-const eventPool = [
-"growth",
-"rest",
-"gather",
-"growth",
-"rest",
-"gather",
-"time"
-];
-
-showMenu();
-
-function showMenu(){
-
-menuScene.style.display = "flex";
-
-gameScene.style.display = "none";
-}
-
-function showGame(){
-
-menuScene.style.display = "none";
-
-gameScene.style.display = "flex";
-}
-
-function startGame(){
-
-floor = 1;
-
-player = {
-
-maxHp:30,
-hp:30,
-
-atk:10,
-def:0,
-crit:10,
-
-weapon:{
-name:"なし",
-power:0
-},
-
-armor:{
-name:"なし",
-power:0
-}
-};
-
-inventory = {
-
-potion:1,
-bomb:1
-};
-
-currentChoices = [];
-
-document.getElementById("resultArea")
-.style.display = "none";
-
-document.getElementById("choiceArea")
-.style.display = "none";
-
-document.getElementById("attackBtn")
-.style.display = "block";
-
-document.getElementById("itemBtn")
-.style.display = "block";
-
-closeItemArea();
-
-createEnemy();
-
-document.getElementById("log")
-.innerHTML =
-"ダンジョンへ潜入した。";
-
-showGame();
-}
-
-function returnToMenu(){
-
-showMenu();
-}
-
-function toggleItems(){
-
-const area =
-document.getElementById("itemArea");
-
-const attackBtn =
-document.getElementById("attackBtn");
-
-const itemBtn =
-document.getElementById("itemBtn");
-
-if(area.style.display === "none"){
-
-area.style.display = "block";
-
-attackBtn.style.display = "none";
-
-itemBtn.style.display = "none";
-}
-else{
-
-closeItemArea();
-}
-}
-
-function closeItemArea(){
-
-document.getElementById("itemArea")
-.style.display = "none";
-
-if(enemy &&
-enemy.hp > 0 &&
-player &&
-player.hp > 0){
-
-document.getElementById("attackBtn")
-.style.display = "block";
-
-document.getElementById("itemBtn")
-.style.display = "block";
-}
-}
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
