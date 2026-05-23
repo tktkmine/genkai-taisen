@@ -843,7 +843,8 @@ document.getElementById("log")
 .innerHTML =
 `
 時巡り失敗…<br>
-時の番人が現れた！
+時の番人が現れた！<br>
+戦闘開始！
 `;
 
 return;
@@ -866,36 +867,44 @@ function chaosEvent(){
 
 let rand =
 Math.floor(
-Math.random() * 5
+Math.random() * 100
 );
 
-if(rand === 0){
+/* =========================
+5%
+時の番人
+========================= */
 
-let move =
-Math.floor(
-Math.random() * 11
-) - 5;
+if(rand < 5){
 
-floor += move;
+document.getElementById("choiceArea")
+.style.display = "none";
 
-if(floor < 1){
-floor = 1;
-}
+document.getElementById("attackBtn")
+.style.display = "block";
 
-createEnemy();
+document.getElementById("itemBtn")
+.style.display = "block";
+
+spawnTimeKeeper();
 
 document.getElementById("log")
 .innerHTML =
 `
-時空が歪む…<br>
-${move}階移動した<br>
-何を行う？
+時空が裂けた…<br>
+時の番人が現れた！<br>
+戦闘開始！
 `;
 
 return;
 }
 
-if(rand === 1){
+/* =========================
+20%
+未来経験
+========================= */
+
+if(rand < 25){
 
 player.atk += 5;
 
@@ -906,7 +915,12 @@ nextFloor(
 return;
 }
 
-if(rand === 2){
+/* =========================
+20%
+老化
+========================= */
+
+if(rand < 45){
 
 player.atk -= 5;
 
@@ -921,21 +935,12 @@ nextFloor(
 return;
 }
 
-if(rand === 3){
+/* =========================
+25%
+爆薬庫
+========================= */
 
-spawnTimeKeeper();
-
-document.getElementById("log")
-.innerHTML =
-`
-時の番人が現れた！<br>
-何を行う？
-`;
-
-return;
-}
-
-if(rand === 4){
+if(rand < 70){
 
 inventory.bomb += 2;
 
@@ -945,6 +950,41 @@ nextFloor(
 
 return;
 }
+
+/* =========================
+30%
+時空移動
+========================= */
+
+let move =
+Math.floor(
+Math.random() * 11
+) - 5;
+
+floor += move;
+
+if(floor < 1){
+floor = 1;
+}
+
+document.getElementById("choiceArea")
+.style.display = "none";
+
+document.getElementById("attackBtn")
+.style.display = "block";
+
+document.getElementById("itemBtn")
+.style.display = "block";
+
+createEnemy();
+
+document.getElementById("log")
+.innerHTML =
+`
+時空が歪む…<br>
+${move}階移動した<br>
+戦闘開始！
+`;
 }
 
 /* =========================
