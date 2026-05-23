@@ -36,7 +36,6 @@ const eventPool = [
 ];
 
 const weapons = [
-
 {name:"木の剣", power:1},
 {name:"鉄の剣", power:2},
 {name:"鋼の剣", power:3},
@@ -44,7 +43,6 @@ const weapons = [
 ];
 
 const armors = [
-
 {name:"木の鎧", power:1},
 {name:"鉄の鎧", power:2},
 {name:"鋼の鎧", power:3},
@@ -265,7 +263,7 @@ drawSprites();
 document.getElementById("log")
 .innerHTML =
 `${enemy.name}が現れた。<br>
-何を行う？`;
+戦闘開始！`;
 }
 
 function spawnTimeKeeper(){
@@ -478,7 +476,7 @@ document.getElementById("log")
 }
 
 /* =========================
-ITEM USE
+ITEM
 ========================= */
 
 function usePotion(){
@@ -856,7 +854,7 @@ updateUI();
 
 document.getElementById("log")
 .innerHTML =
-"時が巻き戻る<br>何を行う？";
+"時が巻き戻る<br>戦闘開始！";
 }
 
 /* =========================
@@ -870,10 +868,7 @@ Math.floor(
 Math.random() * 100
 );
 
-/* =========================
-5%
-時の番人
-========================= */
+/* 5% */
 
 if(rand < 5){
 
@@ -899,10 +894,7 @@ document.getElementById("log")
 return;
 }
 
-/* =========================
-20%
-未来経験
-========================= */
+/* 20% */
 
 if(rand < 25){
 
@@ -915,10 +907,7 @@ nextFloor(
 return;
 }
 
-/* =========================
-20%
-老化
-========================= */
+/* 20% */
 
 if(rand < 45){
 
@@ -935,10 +924,7 @@ nextFloor(
 return;
 }
 
-/* =========================
-25%
-爆薬庫
-========================= */
+/* 25% */
 
 if(rand < 70){
 
@@ -951,10 +937,7 @@ nextFloor(
 return;
 }
 
-/* =========================
-30%
-時空移動
-========================= */
+/* 30% */
 
 let move =
 Math.floor(
@@ -978,6 +961,8 @@ document.getElementById("itemBtn")
 
 createEnemy();
 
+updateUI();
+
 document.getElementById("log")
 .innerHTML =
 `
@@ -988,7 +973,7 @@ ${move}階移動した<br>
 }
 
 /* =========================
-NEXT FLOOR
+NEXT
 ========================= */
 
 function nextFloor(message){
@@ -1013,7 +998,7 @@ updateUI();
 document.getElementById("log")
 .innerHTML =
 message +
-"<br>何を行う？";
+"<br>戦闘開始！";
 }
 
 /* =========================
