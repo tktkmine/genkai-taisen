@@ -1,126 +1,69 @@
-import {
+import { monsters } from "./data/monsters.js";
 
-  monsters
-
-}
-from "./data/monsters.js";
+import { loadGame, saveGame, addGold, addMonster } from "./systems/save.js";
 
 import {
-
-  loadGame,
-
-  saveGame,
-
-  addGold,
-
-  addMonster
-
-}
-from "./systems/save.js";
-
-import {
-
   initializeBattle,
-
   playerAttack,
-
   enemyAttack,
-
   beginPlayerGauge
+} from "./systems/battle.js";
 
-}
-from "./systems/battle.js";
-
-import {
-
-  executeGacha
-
-}
-from "./systems/gacha.js";
+import { executeGacha } from "./systems/gacha.js";
 
 import {
-
   showMenu,
-
   initializeMenu,
-
   hideAllScreens
-
-}
-from "./ui/menuUI.js";
+} from "./ui/menuUI.js";
 
 import {
-
   showTitle,
-
-  hideTitle,
-
   initializeTitle,
-
   playTitleEffect
-
-}
-from "./ui/titleUI.js";
+} from "./ui/titleUI.js";
 
 import {
-
   renderBattleMonsters,
-
   updateHpUI,
-
   clearBattleLog,
-
-  appendBattleLog,
-
-  showBattleScreen
-
-}
-from "./ui/battleUI.js";
+  appendBattleLog
+} from "./ui/battleUI.js";
 
 import {
-
   renderCollection,
-
   showCollection
-
-}
-from "./ui/collectionUI.js";
+} from "./ui/collectionUI.js";
 
 import {
-
   showGachaResult,
-
   showGachaScreen,
-
   clearGachaResult
-
-}
-from "./ui/gachaUI.js";
+} from "./ui/gachaUI.js";
 
 import {
-
   renderHome,
-
   showHomeScreen
-
-}
-from "./ui/homeUI.js";
+} from "./ui/homeUI.js";
 
 import {
-
   showVictory,
-
   showDefeat
-
-}
-from "./ui/resultUI.js";
+} from "./ui/resultUI.js";
 
 /* =====================
-   セーブデータ
+   セーブ
 ===================== */
 
-const playerData =
-  loadGame();
+const playerData = loadGame();
+
+/* =====================
+   初期安全化
+===================== */
+
+if (!playerData.party || playerData.party.length === 0) {
+  playerData.party = ["fire_c_1"];
+}
 
 /* =====================
    タイトル
@@ -129,14 +72,10 @@ const playerData =
 playTitleEffect();
 
 initializeTitle({
-
   onStart: () => {
-
     hideAllScreens();
-
     showMenu();
   }
-
 });
 
 /* =====================
@@ -144,149 +83,56 @@ initializeTitle({
 ===================== */
 
 initializeMenu({
-
-  /* =====================
-     バトル
-  ===================== */
-
-  onBattle: () => {
-
-    startBattleMode();
-  },
-
-  /* =====================
-     ガチャ
-  ===================== */
-
-  onGacha: () => {
-
-    openGacha();
-  },
-
-  /* =====================
-     ホーム
-  ===================== */
-
-  onHome: () => {
-
-    openHome();
-  },
-
-  /* =====================
-     図鑑
-  ===================== */
-
-  onCollection: () => {
-
-    openCollection();
-  }
-
+  onBattle: startBattleMode,
+  onGacha: openGacha,
+  onHome: openHome,
+  onCollection: openCollection
 });
+
+/* =====================
+   バトル状態
+===================== */
+
+let currentBattle = null;
+let battleLock = false;
 
 /* =====================
    バトル開始
 ===================== */
 
-let currentBattle = null;
-
 function startBattleMode() {
-
   hideAllScreens();
 
-  showBattleScreen();
-
-  clearBattleLog();
-
-  /* 自分 */
-
-  const playerMonster =
-
-    monsters.find(
-      (monster) => {
-
-        return (
-
-          monster.id ===
-          playerData.party[0]
-
-        );
-      }
-    );
-
-  /* 敵 */
-
-  const enemyMonster =
-
-    monsters[
-      Math.floor(
-        Math.random()
-        *
-        monsters.length
-      )
-    ];
-
-  /* 初期化 */
-
-  currentBattle =
-
-    initializeBattle({
-
-      player:
-        structuredClone(
-          playerMonster
-        ),
-
-      enemy:
-        structuredClone(
-          enemyMonster
-        ),
-
-      gaugeBarId:
-        "gauge-bar",
-
-      multiplierTextId:
-        "multiplier-text"
-
-    });
-
-  /* 描画 */
-
-  renderBattleMonsters({
-
-    player:
-      currentBattle.player,
-
-    enemy:
-      currentBattle.enemy
-
-  });
-
-  updateHpUI({
-
-    player:
-      currentBattle.player,
-
-    enemy:
-      currentBattle.enemy
-
-  });
-
-  appendBattleLog(
-
-    "戦闘開始！"
-
+  const playerMonster = monsters.find(m =>
+    m.id === playerData.party[0]
   );
 
-  /* ゲージ開始 */
+  const enemyMonster =
+    monsters[Math.floor(Math.random() * monsters.length)];
+
+  if (!playerMonster || !enemyMonster) {
+    alert("モンスターが見つかりません");
+    return;
+  }
+
+  currentBattle = initializeBattle({
+    player: structuredClone(playerMonster),
+    enemy: structuredClone(enemyMonster),
+    gaugeBarId: "gauge-bar",
+    multiplierTextId: "multiplier-text"
+  });
+
+  showBattleScreen?.();
+
+  renderBattleMonsters(currentBattle);
+  updateHpUI(currentBattle);
+
+  clearBattleLog();
+  appendBattleLog("戦闘開始！");
 
   beginPlayerGauge({
-
-    gaugeBarId:
-      "gauge-bar",
-
-    multiplierTextId:
-      "multiplier-text"
-
+    gaugeBarId: "gauge-bar",
+    multiplierTextId: "multiplier-text"
   });
 }
 
@@ -294,112 +140,55 @@ function startBattleMode() {
    STOPボタン
 ===================== */
 
-document.getElementById(
-  "stop-btn"
-).onclick = async () => {
+document.getElementById("stop-btn").onclick = async () => {
+  if (battleLock) return;
+  battleLock = true;
 
-  /* プレイヤー攻撃 */
-
-  const result =
-
-    playerAttack({
-
-      battleData:
-        currentBattle,
-
-      logElementId:
-        "battle-log"
-
-    });
-
-  updateHpUI({
-
-    player:
-      currentBattle.player,
-
-    enemy:
-      currentBattle.enemy
-
+  const result = playerAttack({
+    battleData: currentBattle,
+    logElementId: "battle-log"
   });
 
-  /* 勝利 */
+  updateHpUI(currentBattle);
 
   if (result.finished) {
-
-    showVictory({
-
-      gold: 100
-
-    });
+    showVictory({ gold: 100 });
 
     addGold({
-
-      saveData:
-        playerData,
-
+      saveData: playerData,
       amount: 100
-
     });
 
     addMonster({
-
-      saveData:
-        playerData,
-
-      monsterId:
-        currentBattle.enemy.id
-
+      saveData: playerData,
+      monsterId: currentBattle.enemy.id
     });
 
+    battleLock = false;
     return;
   }
 
-  /* 敵ターン */
+  await delay(800);
 
-  await delay(1000);
-
-  const enemyResult =
-
-    enemyAttack({
-
-      battleData:
-        currentBattle,
-
-      logElementId:
-        "battle-log"
-
-    });
-
-  updateHpUI({
-
-    player:
-      currentBattle.player,
-
-    enemy:
-      currentBattle.enemy
-
+  const enemyResult = enemyAttack({
+    battleData: currentBattle,
+    logElementId: "battle-log"
   });
 
-  /* 敗北 */
+  updateHpUI(currentBattle);
 
   if (enemyResult.finished) {
-
     showDefeat();
-
+    battleLock = false;
     return;
   }
 
-  /* 再開 */
-
   beginPlayerGauge({
-
-    gaugeBarId:
-      "gauge-bar",
-
-    multiplierTextId:
-      "multiplier-text"
-
+    gaugeBarId: "gauge-bar",
+    multiplierTextId: "multiplier-text"
   });
+
+  battleLock = false;
 };
 
 /* =====================
@@ -407,40 +196,21 @@ document.getElementById(
 ===================== */
 
 function openGacha() {
-
   hideAllScreens();
-
   showGachaScreen();
-
   clearGachaResult();
 }
 
-document.getElementById(
-  "gacha-btn"
-).onclick = () => {
-
-  const result =
-
-    executeGacha({
-
-      playerData
-    });
-
-  /* 失敗 */
+document.getElementById("gacha-btn").onclick = () => {
+  const result = executeGacha({ playerData });
 
   if (!result.success) {
-
-    alert(
-      result.message
-    );
-
+    alert(result.message);
     return;
   }
 
   showGachaResult({
-
-    monster:
-      result.monster
+    monster: result.monster
   });
 };
 
@@ -449,32 +219,16 @@ document.getElementById(
 ===================== */
 
 function openHome() {
-
   hideAllScreens();
-
   showHomeScreen();
 
-  const partyMonsters =
-
-    monsters.filter(
-      (monster) => {
-
-        return (
-
-          playerData.party.includes(
-            monster.id
-          )
-
-        );
-      }
-    );
+  const partyMonsters = monsters.filter(m =>
+    playerData.party.includes(m.id)
+  );
 
   renderHome({
-
     playerData,
-
     partyMonsters
-
   });
 }
 
@@ -483,76 +237,22 @@ function openHome() {
 ===================== */
 
 function openCollection() {
-
   hideAllScreens();
-
   showCollection();
 
-  renderCollection({
-
-    playerData
-  });
+  renderCollection({ playerData });
 }
 
 /* =====================
-   戻るボタン
-===================== */
-
-document.getElementById(
-  "battle-back-btn"
-).onclick = () => {
-
-  hideAllScreens();
-
-  showMenu();
-};
-
-document.getElementById(
-  "gacha-back-btn"
-).onclick = () => {
-
-  hideAllScreens();
-
-  showMenu();
-};
-
-document.getElementById(
-  "home-back-btn"
-).onclick = () => {
-
-  hideAllScreens();
-
-  showMenu();
-};
-
-document.getElementById(
-  "collection-back-btn"
-).onclick = () => {
-
-  hideAllScreens();
-
-  showMenu();
-};
-
-/* =====================
-   待機
+   delay
 ===================== */
 
 function delay(ms) {
-
-  return new Promise(
-    (resolve) => {
-
-      setTimeout(
-        resolve,
-        ms
-      );
-    }
-  );
+  return new Promise(r => setTimeout(r, ms));
 }
 
 /* =====================
-   初期画面
+   起動
 ===================== */
 
 showTitle();
