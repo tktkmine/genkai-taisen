@@ -1,87 +1,146 @@
 /* =====================
+   ゲージ状態
+===================== */
+
+let gaugeValue = 0;
+
+let gaugeSpeed = 0.8;
+
+let gaugeActive = false;
+
+let animationId = null;
+
+/* =====================
    ゲージ開始
 ===================== */
 
 export function startGauge({
 
-  gaugeBar,
+  gaugeBarId,
 
-  multiplierText,
-
-  stopButton,
-
-  onStop
+  multiplierTextId
 
 }) {
 
-  let gauge = 0;
+  gaugeValue = 0;
 
-  let direction = 1;
+  gaugeSpeed = 0.8;
 
-  let active = true;
+  gaugeActive = true;
+
+  const gaugeBar =
+
+    document.getElementById(
+      gaugeBarId
+    );
+
+  const multiplierText =
+
+    document.getElementById(
+      multiplierTextId
+    );
 
   /* =====================
-     ゲージ更新
+     更新ループ
   ===================== */
 
-  const interval = setInterval(() => {
+  function updateGauge() {
 
-    /* 加速 */
+    /* 停止済み */
 
-    gauge +=
-      direction *
-      (1 + gauge * 0.03);
+    if (!gaugeActive) {
 
-    /* 最大 */
-
-    if (gauge >= 100) {
-
-      gauge = 100;
-
-      direction = -1;
+      return;
     }
 
-    /* 最小 */
+    /* 増加 */
 
-    if (gauge <= 0) {
+    gaugeValue += gaugeSpeed;
 
-      gauge = 0;
+    /* 最大接近で加速 */
 
-      direction = 1;
+    gaugeSpeed += 0.003;
+
+    /* 上限 */
+
+    if (gaugeValue >= 100) {
+
+      gaugeValue = 0;
+
+      gaugeSpeed = 0.8;
     }
 
-    /* 描画 */
+    /* UI反映 */
 
     gaugeBar.style.width =
-      `${gauge}%`;
+      `${gaugeValue}%`;
 
     /* 倍率 */
 
     const multiplier =
-      1 + (gauge / 100) * 4;
+
+      calculateMultiplier(
+        gaugeValue
+      );
 
     multiplierText.textContent =
+
       `倍率: x${multiplier.toFixed(1)}`;
 
-  }, 16);
+    animationId =
+      requestAnimationFrame(
+        updateGauge
+      );
+  }
 
-  /* =====================
-     STOP
-  ===================== */
+  updateGauge();
+}
 
-  stopButton.onclick = () => {
+/* =====================
+   ゲージ停止
+===================== */
 
-    if (!active) return;
+export function stopGauge() {
 
-    active = false;
+  gaugeActive = false;
 
-    clearInterval(interval);
+  cancelAnimationFrame(
+    animationId
+  );
 
-    /* 最終倍率 */
+  return calculateMultiplier(
+    gaugeValue
+  );
+}
 
-    const finalMultiplier =
-      1 + (gauge / 100) * 4;
+/* =====================
+   倍率計算
+===================== */
 
-    onStop(finalMultiplier);
-  };
+export function calculateMultiplier(
+
+  value
+
+) {
+
+  /* 0〜100
+     ↓
+     1〜5
+  */
+
+  return (
+
+    1 +
+    (value / 100) * 4
+
+  );
+}
+
+/* =====================
+   現在値取得
+===================== */
+
+export function getGaugeValue() {
+
+  return gaugeValue;
 }
