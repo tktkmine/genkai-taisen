@@ -6,6 +6,12 @@ import {
 from "./elements.js";
 
 /* =====================
+   最低保証ダメージ
+===================== */
+
+const MIN_DAMAGE = 1;
+
+/* =====================
    ダメージ計算
 ===================== */
 
@@ -15,70 +21,88 @@ export function calculateDamage({
 
   defender,
 
-  multiplier,
-
-  skillPower = 1
+  gaugeMultiplier
 
 }) {
 
-  /* =====================
-     基本ダメージ
-  ===================== */
+  /* 基礎攻撃力 */
 
-  let damage =
-    (
-      attacker.atk -
-      defender.def
-    );
+  const baseDamage =
+
+    attacker.atk -
+    defender.def;
 
   /* 最低保証 */
 
-  damage =
-    Math.max(1, damage);
+  const fixedDamage =
 
-  /* =====================
-     ゲージ倍率
-  ===================== */
+    Math.max(
+      MIN_DAMAGE,
+      baseDamage
+    );
 
-  damage *= multiplier;
-
-  /* =====================
-     スキル倍率
-  ===================== */
-
-  damage *= skillPower;
-
-  /* =====================
-     属性倍率
-  ===================== */
+  /* 属性倍率 */
 
   const elementMultiplier =
 
-    getElementMultiplier(
+    getElementMultiplier({
 
-      attacker.element,
+      attacker,
 
-      defender.element
+      defender
 
-    );
+    });
 
-  damage *= elementMultiplier;
+  /* 最終ダメージ */
 
-  /* =====================
-     最終処理
-  ===================== */
+  const totalDamage =
 
-  damage =
-    Math.floor(damage);
+    fixedDamage
+    *
+    gaugeMultiplier
+    *
+    elementMultiplier;
 
-  damage =
-    Math.max(1, damage);
+  /* 整数化 */
 
-  return {
+  return Math.floor(
+    totalDamage
+  );
+}
 
-    damage,
+/* =====================
+   HP減少
+===================== */
 
-    elementMultiplier
+export function applyDamage({
 
-  };
+  target,
+
+  damage
+
+}) {
+
+  target.currentHp -= damage;
+
+  /* HP下限 */
+
+  if (target.currentHp < 0) {
+
+    target.currentHp = 0;
+  }
+}
+
+/* =====================
+   生存判定
+===================== */
+
+export function isDead(
+
+  target
+
+) {
+
+  return (
+    target.currentHp <= 0
+  );
 }
