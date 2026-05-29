@@ -1,258 +1,277 @@
-import { monsters } from "./data/monsters.js";
+<!DOCTYPE html>
+<html lang="ja">
 
-import { loadGame, saveGame, addGold, addMonster } from "./systems/save.js";
+<head>
 
-import {
-  initializeBattle,
-  playerAttack,
-  enemyAttack,
-  beginPlayerGauge
-} from "./systems/battle.js";
+  <meta charset="UTF-8" />
 
-import { executeGacha } from "./systems/gacha.js";
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
-import {
-  showMenu,
-  initializeMenu,
-  hideAllScreens
-} from "./ui/menuUI.js";
+  <title>幻界大戦</title>
 
-import {
-  showTitle,
-  initializeTitle,
-  playTitleEffect
-} from "./ui/titleUI.js";
+  <link
+    rel="stylesheet"
+    href="./style.css"
+  />
 
-import {
-  renderBattleMonsters,
-  updateHpUI,
-  clearBattleLog,
-  appendBattleLog
-} from "./ui/battleUI.js";
+</head>
 
-import {
-  renderCollection,
-  showCollection
-} from "./ui/collectionUI.js";
+<body>
 
-import {
-  showGachaResult,
-  showGachaScreen,
-  clearGachaResult
-} from "./ui/gachaUI.js";
+  <!-- =====================
+       タイトル
+  ====================== -->
 
-import {
-  renderHome,
-  showHomeScreen
-} from "./ui/homeUI.js";
+  <section
+    id="title-screen"
+    class="screen active"
+  >
 
-import {
-  showVictory,
-  showDefeat
-} from "./ui/resultUI.js";
+    <h1 id="game-title">
 
-/* =====================
-   セーブ
-===================== */
+      幻界大戦
 
-const playerData = loadGame();
+    </h1>
 
-/* =====================
-   初期安全化
-===================== */
+    <button id="start-btn">
 
-if (!playerData.party || playerData.party.length === 0) {
-  playerData.party = ["fire_c_1"];
-}
+      GAME START
 
-/* =====================
-   タイトル
-===================== */
+    </button>
 
-playTitleEffect();
+  </section>
 
-initializeTitle({
-  onStart: () => {
-    hideAllScreens();
-    showMenu();
-  }
-});
+  <!-- =====================
+       メニュー
+  ====================== -->
 
-/* =====================
-   メニュー
-===================== */
+  <section
+    id="menu-screen"
+    class="screen"
+  >
 
-initializeMenu({
-  onBattle: startBattleMode,
-  onGacha: openGacha,
-  onHome: openHome,
-  onCollection: openCollection
-});
+    <h2>
 
-/* =====================
-   バトル状態
-===================== */
+      メインメニュー
 
-let currentBattle = null;
-let battleLock = false;
+    </h2>
 
-/* =====================
-   バトル開始
-===================== */
+    <button id="menu-battle">
 
-function startBattleMode() {
-  hideAllScreens();
+      モンスターテイム
 
-  const playerMonster = monsters.find(m =>
-    m.id === playerData.party[0]
-  );
+    </button>
 
-  const enemyMonster =
-    monsters[Math.floor(Math.random() * monsters.length)];
+    <button id="menu-gacha">
 
-  if (!playerMonster || !enemyMonster) {
-    alert("モンスターが見つかりません");
-    return;
-  }
+      ガチャ
 
-  currentBattle = initializeBattle({
-    player: structuredClone(playerMonster),
-    enemy: structuredClone(enemyMonster),
-    gaugeBarId: "gauge-bar",
-    multiplierTextId: "multiplier-text"
-  });
+    </button>
 
-  showBattleScreen?.();
+    <button id="menu-home">
 
-  renderBattleMonsters(currentBattle);
-  updateHpUI(currentBattle);
+      マイホーム
 
-  clearBattleLog();
-  appendBattleLog("戦闘開始！");
+    </button>
 
-  beginPlayerGauge({
-    gaugeBarId: "gauge-bar",
-    multiplierTextId: "multiplier-text"
-  });
-}
+    <button id="menu-collection">
 
-/* =====================
-   STOPボタン
-===================== */
+      図鑑
 
-document.getElementById("stop-btn").onclick = async () => {
-  if (battleLock) return;
-  battleLock = true;
+    </button>
 
-  const result = playerAttack({
-    battleData: currentBattle,
-    logElementId: "battle-log"
-  });
+  </section>
 
-  updateHpUI(currentBattle);
+  <!-- =====================
+       バトル
+  ====================== -->
 
-  if (result.finished) {
-    showVictory({ gold: 100 });
+  <section
+    id="battle-screen"
+    class="screen"
+  >
 
-    addGold({
-      saveData: playerData,
-      amount: 100
-    });
+    <h2>
 
-    addMonster({
-      saveData: playerData,
-      monsterId: currentBattle.enemy.id
-    });
+      バトル
 
-    battleLock = false;
-    return;
-  }
+    </h2>
 
-  await delay(800);
+    <!-- 敵 -->
 
-  const enemyResult = enemyAttack({
-    battleData: currentBattle,
-    logElementId: "battle-log"
-  });
+    <div>
 
-  updateHpUI(currentBattle);
+      <h3 id="enemy-name"></h3>
 
-  if (enemyResult.finished) {
-    showDefeat();
-    battleLock = false;
-    return;
-  }
+      <p id="enemy-rank"></p>
 
-  beginPlayerGauge({
-    gaugeBarId: "gauge-bar",
-    multiplierTextId: "multiplier-text"
-  });
+      <p id="enemy-desc"></p>
 
-  battleLock = false;
-};
+      <div class="hp-bar">
 
-/* =====================
-   ガチャ
-===================== */
+        <div
+          id="enemy-hp-fill"
+          class="hp-fill"
+        ></div>
 
-function openGacha() {
-  hideAllScreens();
-  showGachaScreen();
-  clearGachaResult();
-}
+      </div>
 
-document.getElementById("gacha-btn").onclick = () => {
-  const result = executeGacha({ playerData });
+      <p id="enemy-hp-text"></p>
 
-  if (!result.success) {
-    alert(result.message);
-    return;
-  }
+    </div>
 
-  showGachaResult({
-    monster: result.monster
-  });
-};
+    <!-- プレイヤー -->
 
-/* =====================
-   ホーム
-===================== */
+    <div>
 
-function openHome() {
-  hideAllScreens();
-  showHomeScreen();
+      <h3 id="player-name"></h3>
 
-  const partyMonsters = monsters.filter(m =>
-    playerData.party.includes(m.id)
-  );
+      <p id="player-rank"></p>
 
-  renderHome({
-    playerData,
-    partyMonsters
-  });
-}
+      <p id="player-desc"></p>
 
-/* =====================
-   図鑑
-===================== */
+      <div class="hp-bar">
 
-function openCollection() {
-  hideAllScreens();
-  showCollection();
+        <div
+          id="player-hp-fill"
+          class="hp-fill"
+        ></div>
 
-  renderCollection({ playerData });
-}
+      </div>
 
-/* =====================
-   delay
-===================== */
+      <p id="player-hp-text"></p>
 
-function delay(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+    </div>
 
-/* =====================
-   起動
-===================== */
+    <!-- ゲージ -->
 
-showTitle();
+    <div id="gauge-container">
+
+      <div id="gauge-bar"></div>
+
+    </div>
+
+    <p id="multiplier-text">
+
+      倍率: x1.0
+
+    </p>
+
+    <button id="stop-btn">
+
+      STOP
+
+    </button>
+
+    <button id="battle-back-btn">
+
+      戻る
+
+    </button>
+
+    <div id="battle-log"></div>
+
+  </section>
+
+  <!-- =====================
+       ガチャ
+  ====================== -->
+
+  <section
+    id="gacha-screen"
+    class="screen"
+  >
+
+    <h2>
+
+      ガチャ
+
+    </h2>
+
+    <button id="gacha-btn">
+
+      ガチャを引く
+
+    </button>
+
+    <button id="gacha-back-btn">
+
+      戻る
+
+    </button>
+
+    <div id="gacha-result"></div>
+
+  </section>
+
+  <!-- =====================
+       ホーム
+  ====================== -->
+
+  <section
+    id="home-screen"
+    class="screen"
+  >
+
+    <h2>
+
+      マイホーム
+
+    </h2>
+
+    <p id="home-player-name"></p>
+
+    <p id="home-player-world"></p>
+
+    <p id="home-player-gold"></p>
+
+    <div id="party-container"></div>
+
+    <button id="home-back-btn">
+
+      戻る
+
+    </button>
+
+  </section>
+
+  <!-- =====================
+       図鑑
+  ====================== -->
+
+  <section
+    id="collection-screen"
+    class="screen"
+  >
+
+    <h2>
+
+      モンスター図鑑
+
+    </h2>
+
+    <div id="collection-list"></div>
+
+    <button id="collection-back-btn">
+
+      戻る
+
+    </button>
+
+  </section>
+
+  <!-- =====================
+       app.js
+  ====================== -->
+
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
+
+</body>
+
+</html>
